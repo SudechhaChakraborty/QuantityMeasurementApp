@@ -1,17 +1,51 @@
 package com.bridglabz;
 
+import java.util.Objects;
+
 public class QuantityMeasurementApp {
 
-    // ===== FEET CLASS (From UC1) =====
-    public static class Feet {
+    // ===============================
+    // ENUM FOR LENGTH UNITS
+    // ===============================
+    public enum LengthUnit {
+
+        FEET(12.0),     // 1 foot = 12 inches
+        INCHES(1.0);    // base unit
+
+        private final double conversionFactor;
+
+        LengthUnit(double conversionFactor) {
+            this.conversionFactor = conversionFactor;
+        }
+
+        public double getConversionFactor() {
+            return conversionFactor;
+        }
+    }
+
+    // ===============================
+    // GENERIC LENGTH CLASS
+    // ===============================
+    public static class Length {
 
         private final double value;
+        private final LengthUnit unit;
 
-        public Feet(double value) {
-            if (Double.isNaN(value)) {
+        public Length(double value, LengthUnit unit) {
+
+            if (Double.isNaN(value))
                 throw new IllegalArgumentException("Value must be numeric");
-            }
+
+            if (unit == null)
+                throw new IllegalArgumentException("Unit cannot be null");
+
             this.value = value;
+            this.unit = unit;
+        }
+
+        // Convert everything to base unit (inches)
+        private double toBaseUnit() {
+            return this.value * this.unit.getConversionFactor();
         }
 
         @Override
@@ -26,70 +60,44 @@ public class QuantityMeasurementApp {
             if (this.getClass() != obj.getClass())
                 return false;
 
-            Feet other = (Feet) obj;
+            Length other = (Length) obj;
 
-            return Double.compare(this.value, other.value) == 0;
+            return Double.compare(this.toBaseUnit(), other.toBaseUnit()) == 0;
         }
 
         @Override
         public int hashCode() {
-            return Double.hashCode(value);
+            return Objects.hash(toBaseUnit());
         }
     }
 
-    // ===== INCHES CLASS (NEW FOR UC2) =====
-    public static class Inches {
+    // ===============================
+    // STATIC DEMO METHODS
+    // ===============================
 
-        private final double value;
+    public static boolean checkEquality(double v1, LengthUnit u1,
+                                        double v2, LengthUnit u2) {
 
-        public Inches(double value) {
-            if (Double.isNaN(value)) {
-                throw new IllegalArgumentException("Value must be numeric");
-            }
-            this.value = value;
-        }
+        Length l1 = new Length(v1, u1);
+        Length l2 = new Length(v2, u2);
 
-        @Override
-        public boolean equals(Object obj) {
-
-            if (this == obj)
-                return true;
-
-            if (obj == null)
-                return false;
-
-            if (this.getClass() != obj.getClass())
-                return false;
-
-            Inches other = (Inches) obj;
-
-            return Double.compare(this.value, other.value) == 0;
-        }
-
-        @Override
-        public int hashCode() {
-            return Double.hashCode(value);
-        }
+        return l1.equals(l2);
     }
 
-    // ===== STATIC METHODS (As per UC2 main flow) =====
+    // ===============================
+    // MAIN METHOD
+    // ===============================
 
-    public static boolean checkFeetEquality(double v1, double v2) {
-        Feet f1 = new Feet(v1);
-        Feet f2 = new Feet(v2);
-        return f1.equals(f2);
-    }
-
-    public static boolean checkInchesEquality(double v1, double v2) {
-        Inches i1 = new Inches(v1);
-        Inches i2 = new Inches(v2);
-        return i1.equals(i2);
-    }
-
-    // ===== MAIN METHOD (Demonstration Only) =====
     public static void main(String[] args) {
 
-        System.out.println("1.0 ft vs 1.0 ft : " + checkFeetEquality(1.0, 1.0));
-        System.out.println("1.0 inch vs 1.0 inch : " + checkInchesEquality(1.0, 1.0));
+        System.out.println(
+                checkEquality(1.0, LengthUnit.FEET,
+                        12.0, LengthUnit.INCHES)
+        );
+
+        System.out.println(
+                checkEquality(1.0, LengthUnit.INCHES,
+                        1.0, LengthUnit.INCHES)
+        );
     }
 }
