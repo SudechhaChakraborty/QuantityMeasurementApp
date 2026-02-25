@@ -4,43 +4,63 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.bridglabz.QuantityMeasurementApp.Feet;
+import com.bridglabz.QuantityMeasurementApp.Inches;
 
 public class QuantityMeasurementAppTest {
 
-    @Test
-    void givenSameFeetValue_whenCompared_thenReturnTrue() {
-        Feet f1 = new Feet(1.0);
-        Feet f2 = new Feet(1.0);
+    // ===== FEET TESTS =====
 
-        assertTrue(f1.equals(f2));
+    @Test
+    void testFeetEquality_SameValue() {
+        assertTrue(new Feet(1.0).equals(new Feet(1.0)));
     }
 
     @Test
-    void givenDifferentFeetValue_whenCompared_thenReturnFalse() {
-        Feet f1 = new Feet(1.0);
-        Feet f2 = new Feet(2.0);
-
-        assertFalse(f1.equals(f2));
+    void testFeetEquality_DifferentValue() {
+        assertFalse(new Feet(1.0).equals(new Feet(2.0)));
     }
 
     @Test
-    void givenNull_whenCompared_thenReturnFalse() {
-        Feet f1 = new Feet(1.0);
-
-        assertFalse(f1.equals(null));
+    void testFeetEquality_NullComparison() {
+        assertFalse(new Feet(1.0).equals(null));
     }
 
     @Test
-    void givenDifferentType_whenCompared_thenReturnFalse() {
-        Feet f1 = new Feet(1.0);
-
-        assertFalse(f1.equals("1.0"));
+    void testFeetEquality_DifferentClass() {
+        assertFalse(new Feet(1.0).equals("1.0"));
     }
 
     @Test
-    void givenSameReference_whenCompared_thenReturnTrue() {
-        Feet f1 = new Feet(1.0);
+    void testFeetEquality_SameReference() {
+        Feet f = new Feet(1.0);
+        assertTrue(f.equals(f));
+    }
 
-        assertTrue(f1.equals(f1));
+    // ===== INCHES TESTS =====
+
+    @Test
+    void testInchesEquality_SameValue() {
+        assertTrue(new Inches(1.0).equals(new Inches(1.0)));
+    }
+
+    @Test
+    void testInchesEquality_DifferentValue() {
+        assertFalse(new Inches(1.0).equals(new Inches(2.0)));
+    }
+
+    @Test
+    void testInchesEquality_NullComparison() {
+        assertFalse(new Inches(1.0).equals(null));
+    }
+
+    @Test
+    void testInchesEquality_DifferentClass() {
+        assertFalse(new Inches(1.0).equals("1.0"));
+    }
+
+    @Test
+    void testInchesEquality_SameReference() {
+        Inches i = new Inches(1.0);
+        assertTrue(i.equals(i));
     }
 }
