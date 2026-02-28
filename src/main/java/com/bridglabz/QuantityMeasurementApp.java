@@ -1,108 +1,135 @@
 package com.bridglabz;
 
-import java.util.Objects;
-
 public class QuantityMeasurementApp {
 
-    // ===============================
-    // ENUM FOR LENGTH UNITS
-    // Base unit = INCHES
-    // ===============================
-    public enum LengthUnit {
-
-        FEET(12.0),          // 1 foot = 12 inches
-        INCHES(1.0),         // base unit
-        YARDS(36.0),         // 1 yard = 36 inches
-        CENTIMETERS(0.393701); // 1 cm = 0.393701 inches
-
-        private final double conversionFactor;
-
-        LengthUnit(double conversionFactor) {
-            this.conversionFactor = conversionFactor;
-        }
-
-        public double getConversionFactor() {
-            return conversionFactor;
-        }
-    }
-
-    // ===============================
-    // GENERIC LENGTH CLASS (UNCHANGED)
-    // ===============================
     public static class Length {
 
         private final double value;
         private final LengthUnit unit;
+        private static final double EPSILON = 1e-6;
+
+        // Enum with conversion factors relative to FEET (base unit)
+        public enum LengthUnit {
+            FEET(1.0),
+            INCHES(1.0 / 12.0),
+            YARDS(3.0),
+            CENTIMETERS(0.0328084); // 1 cm = 0.0328084 feet
+
+            private final double conversionFactor;
+
+            LengthUnit(double conversionFactor) {
+                this.conversionFactor = conversionFactor;
+            }
+
+            public double getConversionFactor() {
+                return conversionFactor;
+            }
+        }
 
         public Length(double value, LengthUnit unit) {
-
-            if (Double.isNaN(value))
-                throw new IllegalArgumentException("Value must be numeric");
-
-            if (unit == null)
+            if (!Double.isFinite(value)) {
+                throw new IllegalArgumentException("Value must be finite");
+            }
+            if (unit == null) {
                 throw new IllegalArgumentException("Unit cannot be null");
-
+            }
             this.value = value;
             this.unit = unit;
         }
 
-        // Convert everything to base unit (inches)
+        public double getValue() {
+            return value;
+        }
+
+        public LengthUnit getUnit() {
+            return unit;
+        }
+
         private double toBaseUnit() {
-            return this.value * this.unit.getConversionFactor();
+            return value * unit.getConversionFactor();
+        }
+
+        public Length convertTo(LengthUnit targetUnit) {
+            if (targetUnit == null) {
+                throw new IllegalArgumentException("Target unit cannot be null");
+            }
+
+            double baseValue = toBaseUnit();
+            double converted = baseValue / targetUnit.getConversionFactor();
+
+            return new Length(converted, targetUnit);
+        }
+
+        public static double convert(double value, LengthUnit source, LengthUnit target) {
+            if (!Double.isFinite(value)) {
+                throw new IllegalArgumentException("Value must be finite");
+            }
+            if (source == null || target == null) {
+                throw new IllegalArgumentException("Units cannot be null");
+            }
+
+            double base = value * source.getConversionFactor();
+            return base / target.getConversionFactor();
+        }
+
+        public Length add(Length other) {
+            if (other == null) {
+                throw new IllegalArgumentException("Other length cannot be null");
+            }
+
+            double baseSum = this.toBaseUnit() + other.toBaseUnit();
+            double resultValue = baseSum / this.unit.getConversionFactor();
+
+            return new Length(resultValue, this.unit);
         }
 
         @Override
         public boolean equals(Object obj) {
-
-            if (this == obj)
-                return true;
-
-            if (obj == null)
-                return false;
-
-            if (this.getClass() != obj.getClass())
-                return false;
+            if (this == obj) return true;
+            if (!(obj instanceof Length)) return false;
 
             Length other = (Length) obj;
 
-            return Double.compare(this.toBaseUnit(),
-                    other.toBaseUnit()) == 0;
+            double diff = Math.abs(this.toBaseUnit() - other.toBaseUnit());
+            return diff < EPSILON;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(toBaseUnit());
+            return Double.hashCode(toBaseUnit());
+        }
+
+        @Override
+        public String toString() {
+            return "Quantity(" + value + ", " + unit + ")";
         }
     }
 
-    // ===============================
-    // DEMO METHOD
-    // ===============================
-    public static boolean checkEquality(
-            double v1, LengthUnit u1,
-            double v2, LengthUnit u2) {
-
-        Length l1 = new Length(v1, u1);
-        Length l2 = new Length(v2, u2);
-
+    // Demo helpers
+    public static boolean demonstrateLengthEquality(Length l1, Length l2) {
         return l1.equals(l2);
+    }
+
+    public static Length demonstrateLengthAddition(Length l1, Length l2) {
+        return l1.add(l2);
+    }
+
+    public static double demonstrateLengthConversion(double value,
+                                                     Length.LengthUnit from,
+                                                     Length.LengthUnit to) {
+        return Length.convert(value, from, to);
     }
 
     public static void main(String[] args) {
 
-        System.out.println(
-                checkEquality(1.0, LengthUnit.YARDS,
-                        3.0, LengthUnit.FEET)
-        );
+        Length l1 = new Length(1.0, Length.LengthUnit.FEET);
+        Length l2 = new Length(12.0, Length.LengthUnit.INCHES);
 
-        System.out.println(
-                checkEquality(1.0, LengthUnit.YARDS,
-                        36.0, LengthUnit.INCHES)
-        );
+        Length result = l1.add(l2);
 
-        System.out.println(
-                checkEquality(1.0, LengthUnit.CENTIMETERS,
-                        0.393701, LengthUnit.INCHES)
-        );
+        System.out.println("Addition Result: " + result);
+        System.out.println("Equality Check: " + l1.equals(l2));
+        System.out.println("Conversion 1 foot to inches: "
+                + Length.convert(1.0, Length.LengthUnit.FEET, Length.LengthUnit.INCHES));
     }
 }
