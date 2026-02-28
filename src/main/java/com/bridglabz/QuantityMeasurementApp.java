@@ -1,38 +1,25 @@
 package com.bridglabz;
 
+import java.util.Objects;
+
 public class QuantityMeasurementApp {
 
+    /* ============================
+       LENGTH CLASS (Inner Class)
+       ============================ */
     public static class Length {
 
         private final double value;
         private final LengthUnit unit;
-        private static final double EPSILON = 1e-6;
-
-        // Enum with conversion factors relative to FEET (base unit)
-        public enum LengthUnit {
-            FEET(1.0),
-            INCHES(1.0 / 12.0),
-            YARDS(3.0),
-            CENTIMETERS(0.0328084); // 1 cm = 0.0328084 feet
-
-            private final double conversionFactor;
-
-            LengthUnit(double conversionFactor) {
-                this.conversionFactor = conversionFactor;
-            }
-
-            public double getConversionFactor() {
-                return conversionFactor;
-            }
-        }
+        private static final double EPSILON = 0.0001;
 
         public Length(double value, LengthUnit unit) {
-            if (!Double.isFinite(value)) {
-                throw new IllegalArgumentException("Value must be finite");
-            }
-            if (unit == null) {
+            if (unit == null)
                 throw new IllegalArgumentException("Unit cannot be null");
-            }
+
+            if (!Double.isFinite(value))
+                throw new IllegalArgumentException("Invalid numeric value");
+
             this.value = value;
             this.unit = unit;
         }
@@ -45,44 +32,42 @@ public class QuantityMeasurementApp {
             return unit;
         }
 
-        private double toBaseUnit() {
-            return value * unit.getConversionFactor();
-        }
-
+        /* ===== Conversion ===== */
         public Length convertTo(LengthUnit targetUnit) {
-            if (targetUnit == null) {
+            if (targetUnit == null)
                 throw new IllegalArgumentException("Target unit cannot be null");
-            }
 
-            double baseValue = toBaseUnit();
-            double converted = baseValue / targetUnit.getConversionFactor();
+            double valueInFeet = unit.toFeet(value);
+            double converted = targetUnit.fromFeet(valueInFeet);
 
             return new Length(converted, targetUnit);
         }
 
-        public static double convert(double value, LengthUnit source, LengthUnit target) {
-            if (!Double.isFinite(value)) {
-                throw new IllegalArgumentException("Value must be finite");
-            }
-            if (source == null || target == null) {
-                throw new IllegalArgumentException("Units cannot be null");
-            }
-
-            double base = value * source.getConversionFactor();
-            return base / target.getConversionFactor();
-        }
-
+        /* ===== UC6 Addition ===== */
         public Length add(Length other) {
-            if (other == null) {
-                throw new IllegalArgumentException("Other length cannot be null");
-            }
-
-            double baseSum = this.toBaseUnit() + other.toBaseUnit();
-            double resultValue = baseSum / this.unit.getConversionFactor();
-
-            return new Length(resultValue, this.unit);
+            return add(other, this.unit);
         }
 
+        /* ===== UC7 Addition (Explicit Target) ===== */
+        public Length add(Length other, LengthUnit targetUnit) {
+
+            if (other == null)
+                throw new IllegalArgumentException("Length to add cannot be null");
+
+            if (targetUnit == null)
+                throw new IllegalArgumentException("Target unit cannot be null");
+
+            double base1 = this.unit.toFeet(this.value);
+            double base2 = other.unit.toFeet(other.value);
+
+            double sumFeet = base1 + base2;
+
+            double result = targetUnit.fromFeet(sumFeet);
+
+            return new Length(result, targetUnit);
+        }
+
+        /* ===== Equality ===== */
         @Override
         public boolean equals(Object obj) {
             if (this == obj) return true;
@@ -90,46 +75,55 @@ public class QuantityMeasurementApp {
 
             Length other = (Length) obj;
 
-            double diff = Math.abs(this.toBaseUnit() - other.toBaseUnit());
-            return diff < EPSILON;
+            double thisFeet = this.unit.toFeet(this.value);
+            double otherFeet = other.unit.toFeet(other.value);
+
+            return Math.abs(thisFeet - otherFeet) < EPSILON;
         }
 
         @Override
         public int hashCode() {
-            return Double.hashCode(toBaseUnit());
+            return Objects.hash(unit.toFeet(value));
         }
 
         @Override
         public String toString() {
-            return "Quantity(" + value + ", " + unit + ")";
+            return String.format("Quantity(%.3f, %s)", value, unit);
+        }
+
+        /* ===== Enum ===== */
+        public enum LengthUnit {
+            FEET(1.0),
+            INCHES(1.0 / 12.0),
+            YARDS(3.0),
+            CENTIMETERS(0.0328084);
+
+            private final double toFeetFactor;
+
+            LengthUnit(double toFeetFactor) {
+                this.toFeetFactor = toFeetFactor;
+            }
+
+            public double toFeet(double value) {
+                return value * toFeetFactor;
+            }
+
+            public double fromFeet(double feetValue) {
+                return feetValue / toFeetFactor;
+            }
         }
     }
 
-    // Demo helpers
-    public static boolean demonstrateLengthEquality(Length l1, Length l2) {
-        return l1.equals(l2);
-    }
-
-    public static Length demonstrateLengthAddition(Length l1, Length l2) {
-        return l1.add(l2);
-    }
-
-    public static double demonstrateLengthConversion(double value,
-                                                     Length.LengthUnit from,
-                                                     Length.LengthUnit to) {
-        return Length.convert(value, from, to);
-    }
-
+    /* ============================
+       MAIN METHOD
+       ============================ */
     public static void main(String[] args) {
 
         Length l1 = new Length(1.0, Length.LengthUnit.FEET);
         Length l2 = new Length(12.0, Length.LengthUnit.INCHES);
 
-        Length result = l1.add(l2);
-
-        System.out.println("Addition Result: " + result);
-        System.out.println("Equality Check: " + l1.equals(l2));
-        System.out.println("Conversion 1 foot to inches: "
-                + Length.convert(1.0, Length.LengthUnit.FEET, Length.LengthUnit.INCHES));
+        System.out.println(l1.add(l2, Length.LengthUnit.FEET));
+        System.out.println(l1.add(l2, Length.LengthUnit.INCHES));
+        System.out.println(l1.add(l2, Length.LengthUnit.YARDS));
     }
 }
