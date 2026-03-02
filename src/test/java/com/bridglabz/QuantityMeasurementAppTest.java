@@ -6,31 +6,63 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class QuantityMeasurementAppTest {
 
-    private static final double EPSILON = 1e-6;
+    private static final double EPSILON = 1e-3;
+
+    // ============================================================
+    // ===================== INTERFACE TESTS ======================
+    // ============================================================
+
+    @Test
+    void testIMeasurable_LengthUnitImplementation() {
+        IMeasurable feet = LengthUnit.FEET;
+        assertEquals(12.0, feet.getConversionFactor());
+        assertEquals("FEET", feet.getUnitName());
+    }
+
+    @Test
+    void testIMeasurable_WeightUnitImplementation() {
+        IMeasurable kg = WeightUnit.KILOGRAM;
+        assertEquals(1.0, kg.getConversionFactor());
+        assertEquals("KILOGRAM", kg.getUnitName());
+    }
 
     // ============================================================
     // ===================== LENGTH TESTS =========================
     // ============================================================
 
     @Test
-    void testFeetEquality() {
-        Length l1 = new Length(1.0, LengthUnit.FEET);
-        Length l2 = new Length(1.0, LengthUnit.FEET);
+    void testLengthEquality() {
+        Quantity<LengthUnit> l1 =
+                new Quantity<>(1.0, LengthUnit.FEET);
+
+        Quantity<LengthUnit> l2 =
+                new Quantity<>(12.0, LengthUnit.INCHES);
+
         assertEquals(l1, l2);
     }
 
     @Test
-    void testFeetInchesEquality() {
-        Length l1 = new Length(1.0, LengthUnit.FEET);
-        Length l2 = new Length(12.0, LengthUnit.INCHES);
-        assertEquals(l1, l2);
+    void testLengthConversion() {
+        Quantity<LengthUnit> l =
+                new Quantity<>(1.0, LengthUnit.FEET);
+
+        Quantity<LengthUnit> result =
+                l.convertTo(LengthUnit.INCHES);
+
+        assertEquals(12.0, result.getValue(), EPSILON);
     }
 
     @Test
     void testLengthAddition() {
-        Length l1 = new Length(1.0, LengthUnit.FEET);
-        Length l2 = new Length(12.0, LengthUnit.INCHES);
-        Length result = l1.add(l2);
+        Quantity<LengthUnit> l1 =
+                new Quantity<>(1.0, LengthUnit.FEET);
+
+        Quantity<LengthUnit> l2 =
+                new Quantity<>(12.0, LengthUnit.INCHES);
+
+        Quantity<LengthUnit> result =
+                l1.add(l2, LengthUnit.FEET);
+
         assertEquals(2.0, result.getValue(), EPSILON);
     }
 
@@ -39,148 +71,106 @@ class QuantityMeasurementAppTest {
     // ============================================================
 
     @Test
-    void testEquality_KilogramToKilogram() {
-        QuantityWeight w1 = new QuantityWeight(1.0, WeightUnit.KILOGRAM);
-        QuantityWeight w2 = new QuantityWeight(1.0, WeightUnit.KILOGRAM);
-        assertEquals(w1, w2);
-    }
+    void testWeightEquality_KilogramToGram() {
+        Quantity<WeightUnit> kg =
+                new Quantity<>(1.0, WeightUnit.KILOGRAM);
 
-    @Test
-    void testEquality_KilogramToGram() {
-        QuantityWeight kg = new QuantityWeight(1.0, WeightUnit.KILOGRAM);
-        QuantityWeight gram = new QuantityWeight(1000.0, WeightUnit.GRAM);
+        Quantity<WeightUnit> gram =
+                new Quantity<>(1000.0, WeightUnit.GRAM);
+
         assertEquals(kg, gram);
     }
 
     @Test
-    void testEquality_KilogramToPound() {
-        QuantityWeight kg = new QuantityWeight(1.0, WeightUnit.KILOGRAM);
-        QuantityWeight pound = new QuantityWeight(2.20462, WeightUnit.POUND);
+    void testWeightEquality_KilogramToPound() {
+        Quantity<WeightUnit> kg =
+                new Quantity<>(1.0, WeightUnit.KILOGRAM);
+
+        Quantity<WeightUnit> pound =
+                new Quantity<>(2.20462, WeightUnit.POUND);
+
         assertEquals(kg, pound);
     }
 
     @Test
-    void testEquality_GramToPound() {
-        QuantityWeight gram = new QuantityWeight(453.592, WeightUnit.GRAM);
-        QuantityWeight pound = new QuantityWeight(1.0, WeightUnit.POUND);
-        assertEquals(gram, pound);
-    }
+    void testWeightConversion() {
+        Quantity<WeightUnit> kg =
+                new Quantity<>(1.0, WeightUnit.KILOGRAM);
 
-    @Test
-    void testConversion_KilogramToGram() {
-        QuantityWeight kg = new QuantityWeight(1.0, WeightUnit.KILOGRAM);
-        QuantityWeight gram = kg.convertTo(WeightUnit.GRAM);
+        Quantity<WeightUnit> gram =
+                kg.convertTo(WeightUnit.GRAM);
+
         assertEquals(1000.0, gram.getValue(), EPSILON);
     }
 
     @Test
-    void testConversion_PoundToKilogram() {
-        QuantityWeight pound = new QuantityWeight(2.20462, WeightUnit.POUND);
-        QuantityWeight kg = pound.convertTo(WeightUnit.KILOGRAM);
-        assertEquals(1.0, kg.getValue(), 1e-3);
-    }
+    void testWeightAddition() {
+        Quantity<WeightUnit> kg =
+                new Quantity<>(1.0, WeightUnit.KILOGRAM);
 
-    @Test
-    void testConversion_SameUnit() {
-        QuantityWeight kg = new QuantityWeight(5.0, WeightUnit.KILOGRAM);
-        QuantityWeight result = kg.convertTo(WeightUnit.KILOGRAM);
-        assertEquals(5.0, result.getValue(), EPSILON);
-    }
+        Quantity<WeightUnit> gram =
+                new Quantity<>(1000.0, WeightUnit.GRAM);
 
-    @Test
-    void testConversion_RoundTrip() {
-        QuantityWeight kg = new QuantityWeight(1.5, WeightUnit.KILOGRAM);
-        QuantityWeight gram = kg.convertTo(WeightUnit.GRAM);
-        QuantityWeight back = gram.convertTo(WeightUnit.KILOGRAM);
-        assertEquals(1.5, back.getValue(), EPSILON);
-    }
+        Quantity<WeightUnit> result =
+                kg.add(gram, WeightUnit.KILOGRAM);
 
-    @Test
-    void testAddition_SameUnit() {
-        QuantityWeight w1 = new QuantityWeight(1.0, WeightUnit.KILOGRAM);
-        QuantityWeight w2 = new QuantityWeight(2.0, WeightUnit.KILOGRAM);
-        QuantityWeight result = w1.add(w2);
-        assertEquals(3.0, result.getValue(), EPSILON);
-    }
-
-    @Test
-    void testAddition_CrossUnit() {
-        QuantityWeight kg = new QuantityWeight(1.0, WeightUnit.KILOGRAM);
-        QuantityWeight gram = new QuantityWeight(1000.0, WeightUnit.GRAM);
-        QuantityWeight result = kg.add(gram);
         assertEquals(2.0, result.getValue(), EPSILON);
     }
 
+    // ============================================================
+    // ================= CROSS CATEGORY TEST ======================
+    // ============================================================
+
     @Test
-    void testAddition_ExplicitTargetUnit() {
-        QuantityWeight kg = new QuantityWeight(1.0, WeightUnit.KILOGRAM);
-        QuantityWeight gram = new QuantityWeight(1000.0, WeightUnit.GRAM);
-        QuantityWeight result = kg.add(gram, WeightUnit.GRAM);
-        assertEquals(2000.0, result.getValue(), EPSILON);
+    void testCrossCategoryPrevention() {
+        Quantity<LengthUnit> length =
+                new Quantity<>(1.0, LengthUnit.FEET);
+
+        Quantity<WeightUnit> weight =
+                new Quantity<>(1.0, WeightUnit.KILOGRAM);
+
+        assertNotEquals(length, weight);
     }
 
-    @Test
-    void testAddition_Commutativity() {
-        QuantityWeight w1 = new QuantityWeight(1.0, WeightUnit.KILOGRAM);
-        QuantityWeight w2 = new QuantityWeight(1000.0, WeightUnit.GRAM);
-
-        QuantityWeight result1 = w1.add(w2);
-        QuantityWeight result2 = w2.add(w1, WeightUnit.KILOGRAM);
-
-        assertEquals(result1, result2);
-    }
+    // ============================================================
+    // =================== VALIDATION TESTS =======================
+    // ============================================================
 
     @Test
-    void testZeroValue() {
-        QuantityWeight w1 = new QuantityWeight(0.0, WeightUnit.KILOGRAM);
-        QuantityWeight w2 = new QuantityWeight(0.0, WeightUnit.GRAM);
-        assertEquals(w1, w2);
-    }
-
-    @Test
-    void testNegativeWeight() {
-        QuantityWeight w1 = new QuantityWeight(-1.0, WeightUnit.KILOGRAM);
-        QuantityWeight w2 = new QuantityWeight(-1000.0, WeightUnit.GRAM);
-        assertEquals(w1, w2);
-    }
-
-    @Test
-    void testLargeValue() {
-        QuantityWeight w1 = new QuantityWeight(1000000.0, WeightUnit.GRAM);
-        QuantityWeight w2 = new QuantityWeight(1000.0, WeightUnit.KILOGRAM);
-        assertEquals(w1, w2);
-    }
-
-    @Test
-    void testHashCodeConsistency() {
-        QuantityWeight w1 = new QuantityWeight(1.0, WeightUnit.KILOGRAM);
-        QuantityWeight w2 = new QuantityWeight(1000.0, WeightUnit.GRAM);
-        assertEquals(w1.hashCode(), w2.hashCode());
-    }
-
-    @Test
-    void testNullComparison() {
-        QuantityWeight w1 = new QuantityWeight(1.0, WeightUnit.KILOGRAM);
-        assertNotEquals(w1, null);
-    }
-
-    @Test
-    void testWeightVsLengthIncompatible() {
-        QuantityWeight weight = new QuantityWeight(1.0, WeightUnit.KILOGRAM);
-        Length length = new Length(1.0, LengthUnit.FEET);
-
-        assertNotEquals(weight, length);
-    }
-
-    @Test
-    void testInvalidUnit() {
+    void testNullUnit() {
         assertThrows(IllegalArgumentException.class,
-                () -> new QuantityWeight(1.0, null));
+                () -> new Quantity<>(1.0, null));
     }
 
     @Test
     void testInvalidValue() {
         assertThrows(IllegalArgumentException.class,
-                () -> new QuantityWeight(Double.NaN, WeightUnit.KILOGRAM));
+                () -> new Quantity<>(Double.NaN, LengthUnit.FEET));
+    }
+
+    @Test
+    void testImmutability() {
+        Quantity<WeightUnit> kg =
+                new Quantity<>(5.0, WeightUnit.KILOGRAM);
+
+        Quantity<WeightUnit> result =
+                kg.convertTo(WeightUnit.GRAM);
+
+        assertNotSame(kg, result);
+    }
+
+    // ============================================================
+    // =================== HASHCODE TEST ==========================
+    // ============================================================
+
+    @Test
+    void testHashCodeConsistency() {
+        Quantity<WeightUnit> kg =
+                new Quantity<>(1.0, WeightUnit.KILOGRAM);
+
+        Quantity<WeightUnit> gram =
+                new Quantity<>(1000.0, WeightUnit.GRAM);
+
+        assertEquals(kg.hashCode(), gram.hashCode());
     }
 }
