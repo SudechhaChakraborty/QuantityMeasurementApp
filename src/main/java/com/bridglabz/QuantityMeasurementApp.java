@@ -2,42 +2,27 @@ package com.bridglabz;
 
 public class QuantityMeasurementApp {
 
-    public static <U extends IMeasurable> boolean demonstrateEquality(
-            Quantity<U> q1, Quantity<U> q2) {
-        return q1.equals(q2);
-    }
-
-    public static <U extends IMeasurable> Quantity<U> demonstrateConversion(
-            Quantity<U> quantity, U targetUnit) {
-        return quantity.convertTo(targetUnit);
-    }
-
-    public static <U extends IMeasurable> Quantity<U> demonstrateAddition(
-            Quantity<U> q1, Quantity<U> q2) {
-        return q1.add(q2);
-    }
-
-    public static <U extends IMeasurable> Quantity<U> demonstrateAddition(
-            Quantity<U> q1, Quantity<U> q2, U targetUnit) {
-        return q1.add(q2, targetUnit);
-    }
-
     public static void main(String[] args) {
 
-        Quantity<LengthUnit> length =
-                new Quantity<>(1.0, LengthUnit.FEET);
+        Quantity<VolumeUnit> volume1 =
+                new Quantity<>(1.0, VolumeUnit.LITRE);
 
-        Quantity<LengthUnit> inches =
-                new Quantity<>(12.0, LengthUnit.INCHES);
+        Quantity<VolumeUnit> volume2 =
+                new Quantity<>(1000.0, VolumeUnit.MILLILITRE);
 
-        System.out.println(demonstrateEquality(length, inches));
+        Quantity<VolumeUnit> volume3 =
+                new Quantity<>(1.0, VolumeUnit.GALLON);
 
-        Quantity<WeightUnit> kg =
-                new Quantity<>(1.0, WeightUnit.KILOGRAM);
+        System.out.println("Equality:");
+        System.out.println(volume1.equals(volume2));
+        System.out.println(volume1.equals(volume3));
 
-        Quantity<WeightUnit> gram =
-                new Quantity<>(1000.0, WeightUnit.GRAM);
+        System.out.println("\nConversion:");
+        System.out.println(volume1.convertTo(VolumeUnit.MILLILITRE));
+        System.out.println(volume3.convertTo(VolumeUnit.LITRE));
 
-        System.out.println(demonstrateEquality(kg, gram));
+        System.out.println("\nAddition:");
+        System.out.println(volume1.add(volume2));
+        System.out.println(volume1.add(volume3, VolumeUnit.MILLILITRE));
     }
 }
