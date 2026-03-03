@@ -10,13 +10,9 @@ public final class Quantity<U extends IMeasurable> {
     private final U unit;
 
     public Quantity(double value, U unit) {
-
-        if (unit == null)
+        if (unit == null) {
             throw new IllegalArgumentException("Unit cannot be null");
-
-        if (Double.isNaN(value) || Double.isInfinite(value))
-            throw new IllegalArgumentException("Invalid value");
-
+        }
         this.value = value;
         this.unit = unit;
     }
@@ -29,18 +25,52 @@ public final class Quantity<U extends IMeasurable> {
         return unit;
     }
 
+    // -------------------------
+    // EQUALITY
+    // -------------------------
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (this == obj) return true;
+
+        if (!(obj instanceof Quantity<?> other))
+            return false;
+
+        // Prevent cross-category comparison
+        if (!unit.getClass().equals(other.unit.getClass()))
+            return false;
+
+        double thisBase = unit.convertToBaseUnit(value);
+        double otherBase = other.unit.convertToBaseUnit(other.value);
+
+        return Math.abs(thisBase - otherBase) < EPSILON;
+    }
+
+    @Override
+    public int hashCode() {
+        double baseValue = unit.convertToBaseUnit(value);
+        return Objects.hash(baseValue);
+    }
+
+    // -------------------------
+    // CONVERSION
+    // -------------------------
+
     public Quantity<U> convertTo(U targetUnit) {
 
-        if (targetUnit == null)
-            throw new IllegalArgumentException("Target unit cannot be null");
+        if (!unit.getClass().equals(targetUnit.getClass()))
+            throw new IllegalArgumentException("Incompatible unit category");
 
         double baseValue = unit.convertToBaseUnit(value);
-        double converted = targetUnit.convertFromBaseUnit(baseValue);
+        double convertedValue = targetUnit.convertFromBaseUnit(baseValue);
 
-        converted = Math.round(converted * 100.0) / 100.0;
-
-        return new Quantity<>(converted, targetUnit);
+        return new Quantity<>(convertedValue, targetUnit);
     }
+
+    // -------------------------
+    // ADDITION
+    // -------------------------
 
     public Quantity<U> add(Quantity<U> other) {
         return add(other, this.unit);
@@ -48,50 +78,20 @@ public final class Quantity<U extends IMeasurable> {
 
     public Quantity<U> add(Quantity<U> other, U targetUnit) {
 
-        if (other == null)
-            throw new IllegalArgumentException("Other quantity cannot be null");
-
-        if (this.unit.getClass() != other.unit.getClass())
-            throw new IllegalArgumentException("Different measurement categories");
+        if (!unit.getClass().equals(other.unit.getClass()))
+            throw new IllegalArgumentException("Incompatible unit category");
 
         double base1 = unit.convertToBaseUnit(value);
         double base2 = other.unit.convertToBaseUnit(other.value);
 
         double sumBase = base1 + base2;
+        double finalValue = targetUnit.convertFromBaseUnit(sumBase);
 
-        double result = targetUnit.convertFromBaseUnit(sumBase);
-
-        result = Math.round(result * 100.0) / 100.0;
-
-        return new Quantity<>(result, targetUnit);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-
-        if (this == obj)
-            return true;
-
-        if (!(obj instanceof Quantity<?> other))
-            return false;
-
-        if (this.unit.getClass() != other.unit.getClass())
-            return false;
-
-        double base1 = unit.convertToBaseUnit(value);
-        double base2 = other.unit.convertToBaseUnit(other.value);
-
-        return Math.abs(base1 - base2) < EPSILON;
-    }
-
-    @Override
-    public int hashCode() {
-        double baseValue = unit.convertToBaseUnit(value);
-        return Objects.hash(Math.round(baseValue * 1000));
+        return new Quantity<>(finalValue, targetUnit);
     }
 
     @Override
     public String toString() {
-        return "Quantity(" + value + ", " + unit.getUnitName() + ")";
+        return value + " " + unit.getUnitName();
     }
 }
