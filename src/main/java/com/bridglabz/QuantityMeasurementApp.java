@@ -2,27 +2,64 @@ package com.bridglabz;
 
 public class QuantityMeasurementApp {
 
+    public static <U extends IMeasurable> boolean demonstrateEquality(
+            Quantity<U> q1, Quantity<U> q2) {
+
+        return q1.equals(q2);
+    }
+
+    public static <U extends IMeasurable> Quantity<U> demonstrateConversion(
+            Quantity<U> quantity, U targetUnit) {
+
+        return quantity.convertTo(targetUnit);
+    }
+
+    public static <U extends IMeasurable> Quantity<U> demonstrateAddition(
+            Quantity<U> q1, Quantity<U> q2) {
+
+        return q1.add(q2);
+    }
+
+    public static <U extends IMeasurable> Quantity<U> demonstrateAddition(
+            Quantity<U> q1, Quantity<U> q2, U targetUnit) {
+
+        return q1.add(q2, targetUnit);
+    }
+
+    // UC12
+    public static <U extends IMeasurable> Quantity<U> demonstrateSubtraction(
+            Quantity<U> q1, Quantity<U> q2) {
+
+        return q1.subtract(q2);
+    }
+
+    public static <U extends IMeasurable> Quantity<U> demonstrateSubtraction(
+            Quantity<U> q1, Quantity<U> q2, U targetUnit) {
+
+        return q1.subtract(q2, targetUnit);
+    }
+
+    public static <U extends IMeasurable> double demonstrateDivision(
+            Quantity<U> q1, Quantity<U> q2) {
+
+        return q1.divide(q2);
+    }
+
     public static void main(String[] args) {
 
-        Quantity<VolumeUnit> volume1 =
-                new Quantity<>(1.0, VolumeUnit.LITRE);
+        Quantity<LengthUnit> length1 =
+                new Quantity<>(10.0, LengthUnit.FEET);
 
-        Quantity<VolumeUnit> volume2 =
-                new Quantity<>(1000.0, VolumeUnit.MILLILITRE);
+        Quantity<LengthUnit> length2 =
+                new Quantity<>(6.0, LengthUnit.INCHES);
 
-        Quantity<VolumeUnit> volume3 =
-                new Quantity<>(1.0, VolumeUnit.GALLON);
+        System.out.println("Subtraction:");
+        System.out.println(length1.subtract(length2));
 
-        System.out.println("Equality:");
-        System.out.println(volume1.equals(volume2));
-        System.out.println(volume1.equals(volume3));
+        System.out.println("Subtraction with target unit:");
+        System.out.println(length1.subtract(length2, LengthUnit.INCHES));
 
-        System.out.println("\nConversion:");
-        System.out.println(volume1.convertTo(VolumeUnit.MILLILITRE));
-        System.out.println(volume3.convertTo(VolumeUnit.LITRE));
-
-        System.out.println("\nAddition:");
-        System.out.println(volume1.add(volume2));
-        System.out.println(volume1.add(volume3, VolumeUnit.MILLILITRE));
+        System.out.println("Division:");
+        System.out.println(length1.divide(new Quantity<>(2.0, LengthUnit.FEET)));
     }
 }
