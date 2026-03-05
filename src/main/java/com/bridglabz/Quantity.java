@@ -2,11 +2,6 @@ package com.bridglabz;
 
 import java.util.Objects;
 
-/**
- * Generic Quantity class representing a measurable quantity with a value and unit.
- * Supports equality comparison, conversion, addition, subtraction, and division.
- */
-
 public final class Quantity<U extends IMeasurable> {
 
     private static final double EPSILON = 1e-3;
@@ -15,6 +10,7 @@ public final class Quantity<U extends IMeasurable> {
     private final U unit;
 
     public Quantity(double value, U unit) {
+
         if (unit == null)
             throw new IllegalArgumentException("Unit cannot be null");
 
@@ -33,9 +29,9 @@ public final class Quantity<U extends IMeasurable> {
         return unit;
     }
 
-    // =====================================================
+    // =========================
     // EQUALITY
-    // =====================================================
+    // =========================
 
     @Override
     public boolean equals(Object obj) {
@@ -57,13 +53,12 @@ public final class Quantity<U extends IMeasurable> {
 
     @Override
     public int hashCode() {
-        double baseValue = unit.convertToBaseUnit(value);
-        return Objects.hash(baseValue);
+        return Objects.hash(unit.convertToBaseUnit(value));
     }
 
-    // =====================================================
+    // =========================
     // CONVERSION
-    // =====================================================
+    // =========================
 
     public Quantity<U> convertTo(U targetUnit) {
 
@@ -74,15 +69,92 @@ public final class Quantity<U extends IMeasurable> {
             throw new IllegalArgumentException("Incompatible unit categories");
 
         double baseValue = unit.convertToBaseUnit(value);
+        double convertedValue = targetUnit.convertFromBaseUnit(baseValue);
 
-        double converted = targetUnit.convertFromBaseUnit(baseValue);
-
-        return new Quantity<>(converted, targetUnit);
+        return new Quantity<>(convertedValue, targetUnit);
     }
 
-    // =====================================================
-    // ADDITION
-    // =====================================================
+    // =========================
+    // ENUM FOR OPERATIONS
+    // =========================
+
+    private enum ArithmeticOperation {
+
+        ADD {
+            @Override
+            public double compute(double a, double b) {
+                return a + b;
+            }
+        },
+
+        SUBTRACT {
+            @Override
+            public double compute(double a, double b) {
+                return a - b;
+            }
+        },
+
+        DIVIDE {
+            @Override
+            public double compute(double a, double b) {
+
+                if (b == 0)
+                    throw new ArithmeticException("Division by zero");
+
+                return a / b;
+            }
+        };
+
+        public abstract double compute(double a, double b);
+    }
+
+    // =========================
+    // CENTRAL VALIDATION
+    // =========================
+
+    private void validateArithmeticOperands(
+            Quantity<U> other,
+            U targetUnit,
+            boolean targetRequired) {
+
+        if (other == null)
+            throw new IllegalArgumentException("Other quantity cannot be null");
+
+        if (!unit.getClass().equals(other.unit.getClass()))
+            throw new IllegalArgumentException("Incompatible unit categories");
+
+        if (Double.isNaN(other.value) || Double.isInfinite(other.value))
+            throw new IllegalArgumentException("Invalid numeric value");
+
+        if (targetRequired && targetUnit == null)
+            throw new IllegalArgumentException("Target unit cannot be null");
+    }
+
+    // =========================
+    // CORE HELPER
+    // =========================
+
+    private double performBaseArithmetic(
+            Quantity<U> other,
+            ArithmeticOperation operation) {
+
+        double base1 = unit.convertToBaseUnit(value);
+        double base2 = other.unit.convertToBaseUnit(other.value);
+
+        return operation.compute(base1, base2);
+    }
+
+    // =========================
+    // ROUNDING HELPER
+    // =========================
+
+    private double roundToTwoDecimals(double val) {
+        return Math.round(val * 100.0) / 100.0;
+    }
+
+    // =========================
+    // ADD
+    // =========================
 
     public Quantity<U> add(Quantity<U> other) {
         return add(other, this.unit);
@@ -90,28 +162,18 @@ public final class Quantity<U extends IMeasurable> {
 
     public Quantity<U> add(Quantity<U> other, U targetUnit) {
 
-        if (other == null)
-            throw new IllegalArgumentException("Other quantity cannot be null");
+        validateArithmeticOperands(other, targetUnit, true);
 
-        if (targetUnit == null)
-            throw new IllegalArgumentException("Target unit cannot be null");
+        double baseResult = performBaseArithmetic(other, ArithmeticOperation.ADD);
 
-        if (!unit.getClass().equals(other.unit.getClass()))
-            throw new IllegalArgumentException("Incompatible unit categories");
+        double converted = targetUnit.convertFromBaseUnit(baseResult);
 
-        double base1 = unit.convertToBaseUnit(value);
-        double base2 = other.unit.convertToBaseUnit(other.value);
-
-        double baseSum = base1 + base2;
-
-        double result = targetUnit.convertFromBaseUnit(baseSum);
-
-        return new Quantity<>(result, targetUnit);
+        return new Quantity<>(roundToTwoDecimals(converted), targetUnit);
     }
 
-    // =====================================================
-    // SUBTRACTION  (UC12)
-    // =====================================================
+    // =========================
+    // SUBTRACT
+    // =========================
 
     public Quantity<U> subtract(Quantity<U> other) {
         return subtract(other, this.unit);
@@ -119,52 +181,25 @@ public final class Quantity<U extends IMeasurable> {
 
     public Quantity<U> subtract(Quantity<U> other, U targetUnit) {
 
-        if (other == null)
-            throw new IllegalArgumentException("Other quantity cannot be null");
+        validateArithmeticOperands(other, targetUnit, true);
 
-        if (targetUnit == null)
-            throw new IllegalArgumentException("Target unit cannot be null");
+        double baseResult = performBaseArithmetic(other, ArithmeticOperation.SUBTRACT);
 
-        if (!unit.getClass().equals(other.unit.getClass()))
-            throw new IllegalArgumentException("Incompatible unit categories");
+        double converted = targetUnit.convertFromBaseUnit(baseResult);
 
-        double base1 = unit.convertToBaseUnit(value);
-        double base2 = other.unit.convertToBaseUnit(other.value);
-
-        double baseResult = base1 - base2;
-
-        double result = targetUnit.convertFromBaseUnit(baseResult);
-
-        // Round to 2 decimal places
-        result = Math.round(result * 100.0) / 100.0;
-
-        return new Quantity<>(result, targetUnit);
+        return new Quantity<>(roundToTwoDecimals(converted), targetUnit);
     }
 
-    // =====================================================
-    // DIVISION  (UC12)
-    // =====================================================
+    // =========================
+    // DIVIDE
+    // =========================
 
     public double divide(Quantity<U> other) {
 
-        if (other == null)
-            throw new IllegalArgumentException("Other quantity cannot be null");
+        validateArithmeticOperands(other, null, false);
 
-        if (!unit.getClass().equals(other.unit.getClass()))
-            throw new IllegalArgumentException("Incompatible unit categories");
-
-        double base1 = unit.convertToBaseUnit(value);
-        double base2 = other.unit.convertToBaseUnit(other.value);
-
-        if (base2 == 0)
-            throw new ArithmeticException("Division by zero");
-
-        return base1 / base2;
+        return performBaseArithmetic(other, ArithmeticOperation.DIVIDE);
     }
-
-    // =====================================================
-    // STRING REPRESENTATION
-    // =====================================================
 
     @Override
     public String toString() {
