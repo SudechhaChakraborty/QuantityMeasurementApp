@@ -69,87 +69,9 @@ public final class Quantity<U extends IMeasurable> {
             throw new IllegalArgumentException("Incompatible unit categories");
 
         double baseValue = unit.convertToBaseUnit(value);
-        double convertedValue = targetUnit.convertFromBaseUnit(baseValue);
+        double converted = targetUnit.convertFromBaseUnit(baseValue);
 
-        return new Quantity<>(convertedValue, targetUnit);
-    }
-
-    // =========================
-    // ENUM FOR OPERATIONS
-    // =========================
-
-    private enum ArithmeticOperation {
-
-        ADD {
-            @Override
-            public double compute(double a, double b) {
-                return a + b;
-            }
-        },
-
-        SUBTRACT {
-            @Override
-            public double compute(double a, double b) {
-                return a - b;
-            }
-        },
-
-        DIVIDE {
-            @Override
-            public double compute(double a, double b) {
-
-                if (b == 0)
-                    throw new ArithmeticException("Division by zero");
-
-                return a / b;
-            }
-        };
-
-        public abstract double compute(double a, double b);
-    }
-
-    // =========================
-    // CENTRAL VALIDATION
-    // =========================
-
-    private void validateArithmeticOperands(
-            Quantity<U> other,
-            U targetUnit,
-            boolean targetRequired) {
-
-        if (other == null)
-            throw new IllegalArgumentException("Other quantity cannot be null");
-
-        if (!unit.getClass().equals(other.unit.getClass()))
-            throw new IllegalArgumentException("Incompatible unit categories");
-
-        if (Double.isNaN(other.value) || Double.isInfinite(other.value))
-            throw new IllegalArgumentException("Invalid numeric value");
-
-        if (targetRequired && targetUnit == null)
-            throw new IllegalArgumentException("Target unit cannot be null");
-    }
-
-    // =========================
-    // CORE HELPER
-    // =========================
-
-    private double performBaseArithmetic(
-            Quantity<U> other,
-            ArithmeticOperation operation) {
-
-        double base1 = unit.convertToBaseUnit(value);
-        double base2 = other.unit.convertToBaseUnit(other.value);
-
-        return operation.compute(base1, base2);
-    }
-
-    // =========================
-    // ROUNDING HELPER
-    // =========================
-
-    private double roundToTwoDecimals(double val) {
-        return Math.round(val * 100.0) / 100.0;
+        return new Quantity<>(round(converted), targetUnit);
     }
 
     // =========================
@@ -162,13 +84,18 @@ public final class Quantity<U extends IMeasurable> {
 
     public Quantity<U> add(Quantity<U> other, U targetUnit) {
 
-        validateArithmeticOperands(other, targetUnit, true);
+        unit.validateOperationSupport("ADD");
 
-        double baseResult = performBaseArithmetic(other, ArithmeticOperation.ADD);
+        validateOperands(other, targetUnit);
 
-        double converted = targetUnit.convertFromBaseUnit(baseResult);
+        double base1 = unit.convertToBaseUnit(value);
+        double base2 = other.unit.convertToBaseUnit(other.value);
 
-        return new Quantity<>(roundToTwoDecimals(converted), targetUnit);
+        double result = base1 + base2;
+
+        double converted = targetUnit.convertFromBaseUnit(result);
+
+        return new Quantity<>(round(converted), targetUnit);
     }
 
     // =========================
@@ -181,13 +108,18 @@ public final class Quantity<U extends IMeasurable> {
 
     public Quantity<U> subtract(Quantity<U> other, U targetUnit) {
 
-        validateArithmeticOperands(other, targetUnit, true);
+        unit.validateOperationSupport("SUBTRACT");
 
-        double baseResult = performBaseArithmetic(other, ArithmeticOperation.SUBTRACT);
+        validateOperands(other, targetUnit);
 
-        double converted = targetUnit.convertFromBaseUnit(baseResult);
+        double base1 = unit.convertToBaseUnit(value);
+        double base2 = other.unit.convertToBaseUnit(other.value);
 
-        return new Quantity<>(roundToTwoDecimals(converted), targetUnit);
+        double result = base1 - base2;
+
+        double converted = targetUnit.convertFromBaseUnit(result);
+
+        return new Quantity<>(round(converted), targetUnit);
     }
 
     // =========================
@@ -196,13 +128,49 @@ public final class Quantity<U extends IMeasurable> {
 
     public double divide(Quantity<U> other) {
 
-        validateArithmeticOperands(other, null, false);
+        unit.validateOperationSupport("DIVIDE");
 
-        return performBaseArithmetic(other, ArithmeticOperation.DIVIDE);
+        validateOperands(other, null);
+
+        double base1 = unit.convertToBaseUnit(value);
+        double base2 = other.unit.convertToBaseUnit(other.value);
+
+        if (Math.abs(base2) < EPSILON)
+            throw new ArithmeticException("Division by zero");
+
+        return base1 / base2;
+    }
+
+    // =========================
+    // VALIDATION
+    // =========================
+
+    private void validateOperands(Quantity<U> other, U targetUnit) {
+
+        if (other == null)
+            throw new IllegalArgumentException("Other quantity cannot be null");
+
+        if (!unit.getClass().equals(other.unit.getClass()))
+            throw new IllegalArgumentException("Incompatible unit categories");
+
+        if (targetUnit != null &&
+                !unit.getClass().equals(targetUnit.getClass()))
+            throw new IllegalArgumentException("Invalid target unit");
+
+        if (Double.isNaN(other.value) || Double.isInfinite(other.value))
+            throw new IllegalArgumentException("Invalid numeric value");
+    }
+
+    // =========================
+    // ROUNDING
+    // =========================
+
+    private double round(double value) {
+        return Math.round(value * 100.0) / 100.0;
     }
 
     @Override
     public String toString() {
-        return "Quantity(" + value + ", " + unit + ")";
+        return "Quantity(" + value + ", " + unit.getUnitName() + ")";
     }
 }
