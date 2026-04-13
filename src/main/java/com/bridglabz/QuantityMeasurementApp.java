@@ -1,65 +1,34 @@
 package com.bridglabz;
 
+import com.bridglabz.controller.QuantityMeasurementController;
+import com.bridglabz.dto.QuantityDTO;
+import com.bridglabz.factory.RepositoryFactory;
+import com.bridglabz.repository.IQuantityMeasurementRepository;
+import com.bridglabz.service.QuantityMeasurementServiceImpl;
+
 public class QuantityMeasurementApp {
-
-    public static <U extends IMeasurable> boolean demonstrateEquality(
-            Quantity<U> q1, Quantity<U> q2) {
-
-        return q1.equals(q2);
-    }
-
-    public static <U extends IMeasurable> Quantity<U> demonstrateConversion(
-            Quantity<U> quantity, U targetUnit) {
-
-        return quantity.convertTo(targetUnit);
-    }
-
-    public static <U extends IMeasurable> Quantity<U> demonstrateAddition(
-            Quantity<U> q1, Quantity<U> q2) {
-
-        return q1.add(q2);
-    }
-
-    public static <U extends IMeasurable> Quantity<U> demonstrateAddition(
-            Quantity<U> q1, Quantity<U> q2, U targetUnit) {
-
-        return q1.add(q2, targetUnit);
-    }
-
-    // UC12
-    public static <U extends IMeasurable> Quantity<U> demonstrateSubtraction(
-            Quantity<U> q1, Quantity<U> q2) {
-
-        return q1.subtract(q2);
-    }
-
-    public static <U extends IMeasurable> Quantity<U> demonstrateSubtraction(
-            Quantity<U> q1, Quantity<U> q2, U targetUnit) {
-
-        return q1.subtract(q2, targetUnit);
-    }
-
-    public static <U extends IMeasurable> double demonstrateDivision(
-            Quantity<U> q1, Quantity<U> q2) {
-
-        return q1.divide(q2);
-    }
 
     public static void main(String[] args) {
 
-        Quantity<LengthUnit> length1 =
-                new Quantity<>(10.0, LengthUnit.FEET);
+        IQuantityMeasurementRepository repository =
+                RepositoryFactory.getRepository();
 
-        Quantity<LengthUnit> length2 =
-                new Quantity<>(6.0, LengthUnit.INCHES);
+        QuantityMeasurementServiceImpl service =
+                new QuantityMeasurementServiceImpl(repository);
 
-        System.out.println("Subtraction:");
-        System.out.println(length1.subtract(length2));
+        QuantityMeasurementController controller =
+                new QuantityMeasurementController(service);
 
-        System.out.println("Subtraction with target unit:");
-        System.out.println(length1.subtract(length2, LengthUnit.INCHES));
+        QuantityDTO q1 =
+                new QuantityDTO(10,"FEET","LENGTH");
 
-        System.out.println("Division:");
-        System.out.println(length1.divide(new Quantity<>(2.0, LengthUnit.FEET)));
+        QuantityDTO q2 =
+                new QuantityDTO(5,"FEET","LENGTH");
+
+        controller.performAddition(q1,q2);
+        controller.performComparison(q1,q2);
+        controller.performSubtraction(q1,q2);
+        controller.performDivision(q1,q2);
+        controller.performConversion(q1,"INCH");
     }
-}
+}

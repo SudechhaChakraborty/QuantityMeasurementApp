@@ -1,0 +1,12 @@
+2026-04-13 11:42:25.539307+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "CREATE TABLE IF NOT EXISTS measurements (id INT AUTO_INCREMENT PRIMARY KEY, [*]value DOUBLE, unit VARCHAR(50), type VARCHAR(50))"; expected "identifier"; SQL statement:
+CREATE TABLE IF NOT EXISTS measurements (id INT AUTO_INCREMENT PRIMARY KEY, value DOUBLE, unit VARCHAR(50), type VARCHAR(50)) [42001-240]
+2026-04-13 11:42:53.093788+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "CREATE TABLE IF NOT EXISTS measurements (id INT AUTO_INCREMENT PRIMARY KEY, [*]value DOUBLE, unit VARCHAR(50), type VARCHAR(50))"; expected "identifier"; SQL statement:
+CREATE TABLE IF NOT EXISTS measurements (id INT AUTO_INCREMENT PRIMARY KEY, value DOUBLE, unit VARCHAR(50), type VARCHAR(50)) [42001-240]
+2026-04-13 11:45:41.870589+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "CREATE TABLE IF NOT EXISTS measurements (id INT AUTO_INCREMENT PRIMARY KEY, [*]value DOUBLE, unit VARCHAR(50), type VARCHAR(50))"; expected "identifier"; SQL statement:
+CREATE TABLE IF NOT EXISTS measurements (id INT AUTO_INCREMENT PRIMARY KEY, value DOUBLE, unit VARCHAR(50), type VARCHAR(50)) [42001-240]
+2026-04-13 11:48:05.834190+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "CREATE TABLE IF NOT EXISTS measurements (id INT AUTO_INCREMENT PRIMARY KEY, [*]value DOUBLE, unit VARCHAR(50), type VARCHAR(50))"; expected "identifier"; SQL statement:
+CREATE TABLE IF NOT EXISTS measurements (id INT AUTO_INCREMENT PRIMARY KEY, value DOUBLE, unit VARCHAR(50), type VARCHAR(50)) [42001-240]
